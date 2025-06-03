@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  frontend:
+    image: nginx:latest
+    container_name: blog_frontend_prod
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+  backend:
+    build:
+      context: ./backend
+      target: production
+    container_name: blog_backend_prod
+    ports:
+      - "4000:4000"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hello12
+      POSTGRES_DB: postgres2
+      DB_HOST: database
+      PORT: 4000
+      NODE_ENV: production
+    depends_on:
+      - database
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+
+  database:
+    image: postgres:13
+    container_name: blog_database_prod
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hello12
+      POSTGRES_DB: postgres2
+    volumes:
+      - db_data_prod:/var/lib/postgresql/data
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 512M
+
+volumes:
+  db_data_prod:
